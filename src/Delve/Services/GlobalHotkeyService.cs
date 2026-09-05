@@ -2,19 +2,24 @@ using System.Runtime.InteropServices;
 
 namespace Delve.Services;
 
-/// System-wide Ctrl+Win+D hotkey via the classic RegisterHotKey Win32 API. WinUI 3 has no
+/// System-wide Shift+Win+D hotkey via the classic RegisterHotKey Win32 API. WinUI 3 has no
 /// managed global-hotkey surface, and RegisterHotKey needs an HWND with a message loop pumping
 /// its thread's message queue - so this creates a hidden, message-only native window on its
 /// own dedicated thread (its own GetMessage/DispatchMessage loop) rather than trying to piggy-
 /// back on WinUI's own message pump, whose internals aren't a stable place to hook a raw
 /// WndProc. WM_HOTKEY firings are marshalled back to the caller's thread via the supplied
 /// callback's own synchronization (the caller is expected to re-dispatch to the UI thread).
+///
+/// Ctrl+Win+D was the original choice but is claimed by Windows itself (create new virtual
+/// desktop) at a level RegisterHotKey can't override - confirmed by hands-on testing, the
+/// popup never appeared because Explorer's own shell hotkey consumed it first. Shift+Win+D
+/// isn't a reserved Windows shortcut.
 public sealed class GlobalHotkeyService : IDisposable
 {
     private const int WM_HOTKEY = 0x0312;
     private const uint WM_APP_ENABLE = 0x8001;
     private const uint WM_APP_DISABLE = 0x8002;
-    private const uint MOD_CONTROL = 0x0002;
+    private const uint MOD_SHIFT = 0x0004;
     private const uint MOD_WIN = 0x0008;
     private const uint VK_D = 0x44;
     private const int HotkeyId = 1;
@@ -75,7 +80,7 @@ public sealed class GlobalHotkeyService : IDisposable
         // thread DocketAvailabilityService's poll timer happens to fire on.
         if (msg == WM_APP_ENABLE)
         {
-            RegisterHotKey(hwnd, HotkeyId, MOD_CONTROL | MOD_WIN, VK_D);
+            RegisterHotKey(hwnd, HotkeyId, MOD_SHIFT | MOD_WIN, VK_D);
             return IntPtr.Zero;
         }
 
@@ -88,7 +93,7 @@ public sealed class GlobalHotkeyService : IDisposable
         return DefWindowProc(hwnd, msg, wParam, lParam);
     }
 
-    /// Registers or unregisters the Ctrl+Win+D hotkey. Safe to call repeatedly with the same
+    /// Registers or unregisters the Shift+Win+D hotkey. Safe to call repeatedly with the same
     /// value (RegisterHotKey on an already-registered id/window just fails harmlessly, and
     /// UnregisterHotKey on a not-currently-registered one does too).
     public void SetEnabled(bool enabled)

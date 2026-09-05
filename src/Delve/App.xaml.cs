@@ -91,7 +91,7 @@ public partial class App : Application
 
             _trayIcon.IconSource = LoadTrayIcon(available);
             _trayIcon.ToolTipText = available
-                ? "Delve — Ctrl+Win+D to search"
+                ? "Delve — Shift+Win+D to search"
                 : "Delve — Docket search index not available";
         });
     }

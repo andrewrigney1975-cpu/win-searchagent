@@ -25,9 +25,11 @@ Spotlight/Alfred-style access to [Docket](https://github.com/andrewrigney1975-cp
   This is the "checks if the search index service is running" behavior — Docket's index isn't
   a separate Windows service, it's a feature of the running Docket process, so that's what
   Delve actually checks.
-- **`Ctrl+Win+D` global hotkey** opens a borderless, centered, always-on-top, Mica-backed
+- **`Shift+Win+D` global hotkey** opens a borderless, centered, always-on-top, Mica-backed
   search bar above all other windows — a macOS Spotlight / PowerToys Run–style popup, not a
-  normal application window.
+  normal application window. (`Ctrl+Win+D` was the original choice but is reserved by Windows
+  itself for "create new virtual desktop" — confirmed by hands-on testing, where the popup
+  never appeared because the shell consumed the hotkey first.)
 - **Live ranked results** in a flyout below the search box as you type (debounced), using the
   same substring-then-fuzzy ranking algorithm Docket's own Search Everywhere uses, so the feel
   is consistent between the two apps.
@@ -109,6 +111,6 @@ required for that part.
 
 1. Have Docket running with at least one folder added under Control Centre → Search Index.
 2. Launch `delve.exe`. It has no window — check the notification area for its icon.
-3. Press `Ctrl+Win+D` to open the search bar. Type to search; click a result to open it,
+3. Press `Shift+Win+D` to open the search bar. Type to search; click a result to open it,
    Ctrl+click to reveal it in Explorer; Escape or click away to dismiss.
 4. Right-click the tray icon for Open / Hide / Quit.

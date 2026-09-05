@@ -26,7 +26,7 @@
         <ListView
             x:Name="ResultsList"
             Grid.Row="1"
-            MaxHeight="420"
+            MaxHeight="448"
             SelectionMode="Single"
             IsItemClickEnabled="True"
             ItemClick="ResultsList_ItemClick"
