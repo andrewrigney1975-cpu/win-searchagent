@@ -73,6 +73,12 @@ public sealed partial class SearchPopupWindow : Window
             presenter.SetBorderAndTitleBar(false, false);
         }
 
+        // This is a Spotlight/PowerToys Run-style overlay, not a regular app window - it should
+        // never get its own taskbar button or show up in Alt+Tab. The tray icon is the only
+        // persistent, always-visible way to reach Delve; a taskbar button appearing every time
+        // the popup activates would undercut that.
+        _appWindow.IsShownInSwitchers = false;
+
         // SetBorderAndTitleBar(false, false) removes the window chrome, but Windows 11's DWM
         // still draws its own ~1px accent-colored active-window border and rounded-corner frame
         // on top of that by default - on a borderless custom-chrome window this is exactly what

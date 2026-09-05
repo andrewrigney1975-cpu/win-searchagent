@@ -7,16 +7,26 @@
          OnAvailabilityChanged) from an absolute path under AppContext.BaseDirectory - this app
          is unpackaged (WindowsPackageType=None), so a relative XAML resource path here isn't a
          reliable resolution target. -->
+
+    <!-- H.NotifyIcon's default context-menu mode builds a native Win32 popup menu from this
+         MenuFlyout and invokes each item's Command/ExecuteRequested - it does NOT route through
+         the WinUI Click event, so these must be XamlUICommands (resolved and wired to
+         ExecuteRequested in App.xaml.cs), not plain MenuFlyoutItem.Click handlers. Confirmed via
+         hands-on testing: Click handlers on plain MenuFlyoutItems were silently never invoked. -->
+    <XamlUICommand x:Key="OpenCommand" Label="Open" />
+    <XamlUICommand x:Key="HideCommand" Label="Hide" />
+    <XamlUICommand x:Key="QuitCommand" Label="Quit" />
+
     <tb:TaskbarIcon
         x:Key="TrayIcon"
         ToolTipText="Delve — Docket search index not available"
         >
         <tb:TaskbarIcon.ContextFlyout>
             <MenuFlyout>
-                <MenuFlyoutItem Text="Open" />
-                <MenuFlyoutItem Text="Hide" />
+                <MenuFlyoutItem Command="{StaticResource OpenCommand}" />
+                <MenuFlyoutItem Command="{StaticResource HideCommand}" />
                 <MenuFlyoutSeparator />
-                <MenuFlyoutItem Text="Quit" />
+                <MenuFlyoutItem Command="{StaticResource QuitCommand}" />
             </MenuFlyout>
         </tb:TaskbarIcon.ContextFlyout>
     </tb:TaskbarIcon>

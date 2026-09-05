@@ -4,6 +4,7 @@ using H.NotifyIcon;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 
 namespace Delve;
 
@@ -46,27 +47,13 @@ public partial class App : Application
     {
         _trayIcon = (TaskbarIcon)Resources["TrayIcon"];
 
-        var menu = (MenuFlyout)_trayIcon.ContextFlyout!;
-        foreach (var item in menu.Items)
-        {
-            if (item is not MenuFlyoutItem menuItem)
-            {
-                continue;
-            }
-
-            switch (menuItem.Text)
-            {
-                case "Open":
-                    menuItem.Click += (_, _) => ShowPopup();
-                    break;
-                case "Hide":
-                    menuItem.Click += (_, _) => HidePopup();
-                    break;
-                case "Quit":
-                    menuItem.Click += (_, _) => Quit();
-                    break;
-            }
-        }
+        // H.NotifyIcon's default context-menu mode builds a native Win32 popup menu from the
+        // MenuFlyout and invokes each item's Command/ExecuteRequested rather than the WinUI
+        // Click event (confirmed by hands-on testing - Click handlers on plain MenuFlyoutItems
+        // were silently never invoked), so these are resolved as XamlUICommands here instead.
+        ((XamlUICommand)Resources["OpenCommand"]).ExecuteRequested += (_, _) => ShowPopup();
+        ((XamlUICommand)Resources["HideCommand"]).ExecuteRequested += (_, _) => HidePopup();
+        ((XamlUICommand)Resources["QuitCommand"]).ExecuteRequested += (_, _) => Quit();
 
         _trayIcon.IconSource = LoadTrayIcon(available: false);
         _trayIcon.ForceCreate();
