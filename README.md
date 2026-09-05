@@ -37,6 +37,9 @@ Spotlight/Alfred-style access to [Docket](https://github.com/andrewrigney1975-cp
   in Explorer). **Ctrl+click** reveals it in Explorer instead, selected.
 - **Escape or click-away** closes the popup; the window is reused (hidden, not destroyed)
   between hotkey presses so re-opening is instant.
+- **No taskbar button, no Alt+Tab entry.** The popup is a Spotlight/PowerToys Run-style
+  overlay, not a regular app window — the tray icon is the only persistent, always-visible way
+  to reach Delve.
 - **Tray icon** with a context menu: **Open** (show the search popup), **Hide** (dismiss it if
   open), **Quit** (fully exit — unregisters the hotkey and disposes the tray icon).
 
@@ -82,6 +85,36 @@ tests/Delve.Tests/
   DocketIndexReaderTests        Against a hand-built DB matching Docket's schema, incl. concurrent-
                                  reader-while-writer-holds-a-transaction
 ```
+
+### Notable implementation gotchas
+
+A handful of non-obvious WinUI 3 / Win32 behaviors surfaced during hands-on testing and are
+worth recording here rather than only in code comments:
+
+- **`Ctrl+Win+D` is reserved by Windows** ("create new virtual desktop") and silently wins over
+  `RegisterHotKey` — the popup never received the keypress. Delve uses `Shift+Win+D` instead.
+- **A global hotkey can't reliably win real OS keyboard focus** via `Window.Activate()` or
+  `AppWindow.Show(activateWindow: true)` when it summons a window from a background/tray
+  process — Windows' foreground-lock rules block it. `SearchPopupWindow` uses the
+  `AttachThreadInput`/`SetForegroundWindow` bypass standard to launcher-style apps (PowerToys
+  Run, Wox), then requests focus via `FocusManager.TryFocusAsync` posted through the dispatcher
+  queue (with retry) so it runs after the activation messages that bypass triggers have
+  actually been processed, rather than racing ahead of them.
+- **Windows 11's DWM draws its own border/rounded-corner frame** on top of a borderless
+  (`SetBorderAndTitleBar(false, false)`) window by default, which showed up as an inconsistent
+  single/double-width edge. Disabled explicitly via `DwmSetWindowAttribute`
+  (`DWMWA_BORDER_COLOR` / `DWMWA_WINDOW_CORNER_PREFERENCE`).
+- **Resizing the popup per keystroke caused compositor tearing/ghost pixels**, worse on the very
+  first open. Fixed by sizing the window once *before* attaching the `MicaBackdrop` (not after),
+  resizing at most once per search session (two fixed states — collapsed/expanded — rather than
+  one size per result count), via a single atomic `AppWindow.MoveAndResize` instead of separate
+  `Resize`+`Move` calls. The vertical position is anchored to the *collapsed* height specifically,
+  so the search box's own top edge never moves as the results panel grows below it.
+- **H.NotifyIcon's tray context menu doesn't route through the WinUI `Click` event.** Its
+  default mode builds a native Win32 popup menu from the `MenuFlyout` and invokes each item's
+  `Command`/`ExecuteRequested` — plain `MenuFlyoutItem.Click` handlers are silently never
+  called. `TrayIconResources.xaml`'s Open/Hide/Quit items are `XamlUICommand`s wired via
+  `ExecuteRequested` in `App.xaml.cs`, matching H.NotifyIcon's own documented pattern.
 
 ### Known limitation (inherited from Docket)
 
