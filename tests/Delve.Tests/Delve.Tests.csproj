@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.10" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <!-- Links the real source files from src/Delve rather than duplicating them - only the pure-
+       logic files with no WinUI dependency (DocketIndexReader.cs only touches Microsoft.Data.Sqlite
+       and the two files below, so it builds fine under plain net8.0). -->
+  <ItemGroup>
+    <Compile Include="..\..\src\Delve\Helpers\FuzzyMatcher.cs" Link="Helpers\FuzzyMatcher.cs" />
+    <Compile Include="..\..\src\Delve\Models\SearchResultItem.cs" Link="Models\SearchResultItem.cs" />
+    <Compile Include="..\..\src\Delve\Services\DocketIndexReader.cs" Link="Services\DocketIndexReader.cs" />
+  </ItemGroup>
+
+</Project>

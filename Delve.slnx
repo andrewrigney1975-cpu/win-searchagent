@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Delve/Delve.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Delve.Tests/Delve.Tests.csproj" />
+  </Folder>
+</Solution>
