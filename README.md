@@ -140,6 +140,29 @@ The pure-logic pieces (`Helpers/FuzzyMatcher.cs`, `Models/SearchResultItem.cs`,
 `tests/Delve.Tests`, which builds and runs anywhere with `dotnet test` — no Visual Studio
 required for that part.
 
+### Producing a Release build
+
+Build (don't `dotnet publish`/MSBuild `/t:Publish`) the project directly, e.g. via Visual
+Studio's own `MSBuild.exe`:
+
+```
+MSBuild.exe Delve.csproj /restore /p:Configuration=Release /p:Platform=x64
+```
+
+The runnable output is `src\Delve\bin\x64\Release\net8.0-windows10.0.19041.0\win-x64\delve.exe`
+plus everything alongside it in that folder (self-contained: it bundles its own .NET runtime,
+so nothing needs to be separately installed on the target machine) — copy or zip that whole
+folder as the distributable.
+
+**Do not use the `/t:Publish` target (or `dotnet publish`) for this project.** Confirmed by
+hands-on testing: its output silently drops the compiled XAML resource files (`delve.pri`,
+`App.xbf`, `TrayIconResources.xbf`, `Views/SearchPopupWindow.xbf`), and the resulting
+`publish\delve.exe` crashes immediately in `Microsoft.UI.Xaml.dll` (`0xC000027B`) because it
+can't load its own XAML resources. This is a known class of gotcha for unpackaged WinUI 3
+projects, where MSBuild's `Publish` target doesn't automatically carry over everything the
+plain `Build` target's XAML compiler step produces. The plain Release **build** output doesn't
+have this problem and is the one to ship.
+
 ## Running
 
 1. Have Docket running with at least one folder added under Control Centre → Search Index.
